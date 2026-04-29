@@ -1,0 +1,23 @@
+# dependencies
+/node_modules
+.pnp*
+
+# lockfiles
+pnpm-lock.yaml
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# testing
+/coverage
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
