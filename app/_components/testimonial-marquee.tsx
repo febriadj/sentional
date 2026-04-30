@@ -1,9 +1,9 @@
 "use client";
 
-import { useRef } from "react";
 import { motion, useAnimationControls } from "framer-motion";
 import { RiDoubleQuotesL } from "@remixicon/react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
 interface Testimonial {
     quote: string;
@@ -94,7 +94,7 @@ const DURATION = 40;
 
 function TestimonialCard({ item }: { item: Testimonial }) {
     return (
-        <Card className="w-72 shrink-0 py-4 select-none">
+        <Card className="w-80 shrink-0 py-4 select-none">
             <CardContent className="px-5">
                 <RiDoubleQuotesL
                     size={18}
@@ -103,13 +103,25 @@ function TestimonialCard({ item }: { item: Testimonial }) {
                 <p className="text-foreground/80 mb-4 text-sm leading-relaxed">
                     {item.quote}
                 </p>
-                <div>
-                    <p className="text-sm leading-none font-medium">
-                        {item.author}
-                    </p>
-                    <p className="text-muted-foreground mt-1 text-xs">
-                        {item.role} · {item.handle}
-                    </p>
+                <div className="flex items-center gap-2.5">
+                    <Avatar className="size-8 shrink-0">
+                        <AvatarImage
+                            src={`https://ui-avatars.com/api/?name=${encodeURIComponent(item.author)}&background=random&length=1`}
+                            alt={item.author}
+                            width={32}
+                            height={32}
+                            loading="lazy"
+                        />
+                        <AvatarFallback>{item.author.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div>
+                        <p className="text-sm leading-none font-medium">
+                            {item.author}
+                        </p>
+                        <p className="text-muted-foreground mt-1 text-xs">
+                            {item.role}
+                        </p>
+                    </div>
                 </div>
             </CardContent>
         </Card>
