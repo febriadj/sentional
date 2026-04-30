@@ -10,8 +10,6 @@ import { SentimentChart } from "./_components/sentiment-chart";
 import { TopicsChart } from "./_components/topics-chart";
 import { EngagementStats } from "./_components/engagement-stats";
 import { IntelligencePanel } from "./_components/intelligence-panel";
-import AppFooter from "@/components/shared/app-footer";
-import AppNavbar from "@/components/shared/app-navbar";
 
 interface Props {
     params: Promise<{ id: string }>;
@@ -76,7 +74,6 @@ export default async function AnalysisPage({ params }: Props) {
 
     return (
         <main className="bg-background min-h-screen">
-            <AppNavbar />
             <div className="mx-auto max-w-5xl space-y-6 px-6 py-10">
                 {author && <AccountHeader author={author} />}
 
@@ -96,8 +93,6 @@ export default async function AnalysisPage({ params }: Props) {
                     intelligence={analysis_result.account_intelligence}
                 />
             </div>
-
-            <AppFooter />
         </main>
     );
 }

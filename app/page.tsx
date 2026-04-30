@@ -1,5 +1,3 @@
-import AppNavbar from "@/components/shared/app-navbar";
-import AppFooter from "@/components/shared/app-footer";
 import UrlInputForm from "./_components/url-input-form";
 import SearchExamples from "./_components/search-examples";
 import FeatureHighlights from "./_components/feature-highlights";
@@ -7,8 +5,6 @@ import FeatureHighlights from "./_components/feature-highlights";
 export default function Home() {
     return (
         <div className="bg-background flex flex-1 flex-col">
-            <AppNavbar />
-
             <main className="flex flex-1 flex-col items-center justify-center px-6 py-20">
                 <div className="w-full max-w-2xl">
                     {/* Hero */}
@@ -51,8 +47,6 @@ export default function Home() {
                     <FeatureHighlights />
                 </div>
             </main>
-
-            <AppFooter />
         </div>
     );
 }

@@ -2,6 +2,8 @@ import { geistSans, geistMono } from "./fonts";
 import { metadata } from "./metadata";
 import { ThemeProvider } from "@/components/theme-provider";
 import "./globals.css";
+import AppNavbar from "@/components/shared/app-navbar";
+import AppFooter from "@/components/shared/app-footer";
 
 export { metadata };
 
@@ -23,7 +25,9 @@ export default function RootLayout({
                     enableSystem
                     disableTransitionOnChange
                 >
+                    <AppNavbar />
                     {children}
+                    <AppFooter />
                 </ThemeProvider>
             </body>
         </html>
