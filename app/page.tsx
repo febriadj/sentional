@@ -1,5 +1,5 @@
 import HeroSearch from "./_components/hero-search";
-import FeatureHighlights from "./_components/feature-highlights";
+import TestimonialMarquee from "./_components/testimonial-marquee";
 
 export default function Home() {
     return (
@@ -40,9 +40,10 @@ export default function Home() {
                     {/* Divider */}
                     <div className="bg-border/40 my-12 h-px w-full" />
                 </div>
-                <div className="w-full max-w-5xl px-6">
-                    {/* Feature highlights */}
-                    <FeatureHighlights />
+
+                <div className="w-full max-w-6xl space-y-16 py-2">
+                    {/* Testimonials */}
+                    <TestimonialMarquee />
                 </div>
             </main>
         </div>
