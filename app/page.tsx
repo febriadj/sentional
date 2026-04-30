@@ -22,7 +22,7 @@ export default function Home() {
                         <h1 className="text-foreground text-4xl font-semibold tracking-tight sm:text-5xl">
                             Understand any account.{" "}
                             <span className="text-muted-foreground">
-                                Deeply.
+                                Deeply with AI.
                             </span>
                         </h1>
 
