@@ -8,13 +8,23 @@ import { Button } from "@/components/ui/button";
 
 interface UrlInputFormProps {
     placeholder?: string;
+    value?: string;
+    onValueChange?: (value: string) => void;
 }
 
 export default function UrlInputForm({
     placeholder = "https://x.com/username",
+    value: externalValue,
+    onValueChange,
 }: UrlInputFormProps) {
     const router = useRouter();
-    const [url, setUrl] = useState("");
+    const [localUrl, setLocalUrl] = useState("");
+    const isControlled = externalValue !== undefined;
+    const url = isControlled ? externalValue : localUrl;
+    const setUrl = (v: string) => {
+        if (isControlled) onValueChange?.(v);
+        else setLocalUrl(v);
+    };
     const [isLoading, setIsLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 

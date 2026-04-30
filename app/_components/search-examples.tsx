@@ -1,3 +1,5 @@
+"use client";
+
 import { RiTwitterXFill } from "@remixicon/react";
 
 interface ExampleAccount {
@@ -11,7 +13,11 @@ const EXAMPLE_ACCOUNTS: ExampleAccount[] = [
     { handle: "@BBCBreaking", description: "Breaking news" },
 ];
 
-export default function SearchExamples() {
+export default function SearchExamples({
+    onSelect,
+}: {
+    onSelect?: (url: string) => void;
+}) {
     return (
         <div className="flex flex-wrap items-center justify-center gap-x-4 gap-y-2 sm:justify-start">
             <span className="text-muted-foreground flex items-center gap-1.5 text-xs">
@@ -19,13 +25,19 @@ export default function SearchExamples() {
                 Try:
             </span>
             {EXAMPLE_ACCOUNTS.map((account) => (
-                <span
+                <button
                     key={account.handle}
-                    className="text-muted-foreground/70 hover:text-foreground cursor-default text-xs transition-colors"
+                    type="button"
+                    onClick={() =>
+                        onSelect?.(
+                            `https://x.com/${account.handle.replace("@", "")}`,
+                        )
+                    }
+                    className="text-muted-foreground/70 hover:text-foreground cursor-pointer text-xs transition-colors"
                     title={account.description}
                 >
                     {account.handle}
-                </span>
+                </button>
             ))}
         </div>
     );

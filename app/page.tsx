@@ -1,5 +1,4 @@
-import UrlInputForm from "./_components/url-input-form";
-import SearchExamples from "./_components/search-examples";
+import HeroSearch from "./_components/hero-search";
 import FeatureHighlights from "./_components/feature-highlights";
 
 export default function Home() {
@@ -35,8 +34,7 @@ export default function Home() {
 
                     {/* Search */}
                     <div className="mb-4 flex flex-col gap-3">
-                        <UrlInputForm />
-                        <SearchExamples />
+                        <HeroSearch />
                     </div>
 
                     {/* Divider */}
