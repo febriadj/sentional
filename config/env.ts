@@ -16,6 +16,15 @@ const envSchema = z.object({
                     "MONGODB_URI must be a valid MongoDB connection string",
             },
         ),
+    TIKHUB_BASE_URL: z
+        .url("TIKHUB_BASE_URL must be a valid URL")
+        .default("https://api.tikhub.io"),
+    TIKHUB_BEARER_TOKEN: z
+        .string()
+        .min(1, "TIKHUB_BEARER_TOKEN must not be empty"),
+    OPENROUTER_API_KEY: z
+        .string()
+        .min(1, "OPENROUTER_API_KEY must not be empty"),
 });
 
 const _parsed = envSchema.safeParse(process.env);
