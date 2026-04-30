@@ -43,7 +43,7 @@ export default function UrlInputForm({
             }
 
             const { id } = await response.json();
-            router.push(`/analysis/${id}`);
+            router.push(`/analyses/${id}`);
         } catch (err) {
             setError("Network error. Please check your connection.");
         } finally {
