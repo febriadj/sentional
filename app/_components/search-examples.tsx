@@ -8,9 +8,9 @@ interface ExampleAccount {
 }
 
 const EXAMPLE_ACCOUNTS: ExampleAccount[] = [
-    { handle: "@elonmusk", description: "Tech & news" },
-    { handle: "@sama", description: "AI & startups" },
-    { handle: "@BBCBreaking", description: "Breaking news" },
+    { handle: "@elonmusk", description: "Tech & Business" },
+    { handle: "@animetrends", description: "Anime & Japanese culture" },
+    { handle: "@BBCWorld", description: "World news" },
 ];
 
 export default function SearchExamples({
