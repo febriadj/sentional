@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { OpenRouter } from "@openrouter/sdk";
 import { uuidv7 } from "uuidv7";
 import { env } from "@/config/env";
 import redis, { Keys, TTL } from "@/lib/redis";
@@ -16,12 +15,76 @@ import type {
 import type { AnalysisRequestDocument } from "@/app/api/requests/type";
 
 export const runtime = "edge";
+export const dynamic = "force-dynamic";
 
-const openrouter = new OpenRouter({
-    apiKey: env.OPENROUTER_API_KEY,
-    httpReferer: env.OPENROUTER_HTTP_REFERER,
-    appTitle: env.OPENROUTER_APP_TITLE,
-});
+const OPENROUTER_URL = "https://openrouter.ai/api/v1/chat/completions";
+
+async function streamOpenRouter(
+    system: string,
+    user: string,
+    jsonSchema: Record<string, unknown>,
+): Promise<string> {
+    const response = await fetch(OPENROUTER_URL, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${env.OPENROUTER_API_KEY}`,
+            "HTTP-Referer": env.OPENROUTER_HTTP_REFERER,
+            "X-Title": env.OPENROUTER_APP_TITLE,
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+            model: "poolside/laguna-m.1:free",
+            messages: [
+                { role: "system", content: system },
+                { role: "user", content: user },
+            ],
+            stream: true,
+            response_format: {
+                type: "json_schema",
+                json_schema: {
+                    name: "analysis_result",
+                    schema: jsonSchema,
+                    strict: true,
+                },
+            },
+        }),
+    });
+
+    if (!response.ok || !response.body) {
+        throw new Error(`OpenRouter error: ${response.status}`);
+    }
+
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let accumulated = "";
+    let buffer = "";
+
+    while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+
+        for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed.startsWith("data: ")) continue;
+            const data = trimmed.slice(6);
+            if (data === "[DONE]") continue;
+            try {
+                const parsed = JSON.parse(data);
+                const delta = parsed.choices?.[0]?.delta?.content;
+                if (typeof delta === "string") accumulated += delta;
+            } catch {
+                // skip malformed SSE frames
+                continue;
+            }
+        }
+    }
+
+    return accumulated;
+}
 
 export async function POST(
     request: NextRequest,
@@ -117,23 +180,11 @@ export async function POST(
 
     let analysisResult: z.infer<typeof analysisResultSchema>;
     try {
-        const jsonSchema = z.toJSONSchema(analysisResultSchema);
-
-        const result = openrouter.callModel({
-            model: "poolside/laguna-m.1:free",
-            instructions: system,
-            input: user,
-            text: {
-                format: {
-                    type: "json_schema",
-                    name: "analysis_result",
-                    schema: jsonSchema as Record<string, unknown>,
-                    strict: true,
-                },
-            },
-        });
-
-        const raw = await result.getText();
+        const jsonSchema = z.toJSONSchema(analysisResultSchema) as Record<
+            string,
+            unknown
+        >;
+        const raw = await streamOpenRouter(system, user, jsonSchema);
         analysisResult = analysisResultSchema.parse(JSON.parse(raw));
     } catch (err) {
         console.error("[POST /api/analyses] AI generation failed:", err);
