@@ -25,7 +25,11 @@ const envSchema = z.object({
     OPENROUTER_API_KEY: z
         .string()
         .min(1, "OPENROUTER_API_KEY must not be empty"),
-    OPENROUTER_HTTP_REFERER: z.string().optional(),
+    OPENROUTER_HTTP_REFERER: z
+        .string()
+        .optional()
+        .default("http://localhost:3000"),
+    OPENROUTER_APP_TITLE: z.string().optional().default("Sentional"),
 });
 
 const _parsed = envSchema.safeParse(process.env);

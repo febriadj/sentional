@@ -14,9 +14,12 @@ import type {
     TikHubTweet,
 } from "./type";
 
+export const maxDuration = 60;
+
 const openrouter = new OpenRouter({
     apiKey: env.OPENROUTER_API_KEY,
     httpReferer: env.OPENROUTER_HTTP_REFERER,
+    appTitle: env.OPENROUTER_APP_TITLE,
 });
 
 export async function POST(
