@@ -1,5 +1,3 @@
-import type { TikHubTweet } from "./type";
-
 const T_CO_PATTERN = /https?:\/\/t\.co\/\S+/g;
 
 function cleanText(text: string): string {
@@ -9,6 +7,22 @@ function cleanText(text: string): string {
         .trim();
 }
 
+export interface CorePost {
+    tweet_id: string;
+    text: string;
+    lang: string;
+    created_at: string;
+    views: string;
+    favorites: number;
+    retweets: number;
+    replies: number;
+    quotes: number;
+    bookmarks: number;
+    has_media: boolean;
+    has_link: boolean;
+    is_reply: boolean;
+}
+
 interface TweetSummary {
     id: string;
     text: string;
@@ -16,31 +30,27 @@ interface TweetSummary {
     created_at: string;
     engagement: number;
     views: number;
-    linked_domains: string[];
+    has_media: boolean;
+    has_link: boolean;
+    is_reply: boolean;
 }
 
-function summarizeTweet(tweet: TikHubTweet): TweetSummary {
+function summarizeTweet(post: CorePost): TweetSummary {
     return {
-        id: tweet.tweet_id,
-        text: cleanText(tweet.text),
-        lang: tweet.lang,
-        created_at: tweet.created_at,
+        id: post.tweet_id,
+        text: cleanText(post.text),
+        lang: post.lang,
+        created_at: post.created_at,
         engagement:
-            tweet.favorites +
-            tweet.retweets +
-            tweet.replies +
-            tweet.quotes +
-            tweet.bookmarks,
-        views: parseInt(tweet.views, 10) || 0,
-        linked_domains: tweet.entities.urls
-            .map((u) => {
-                try {
-                    return new URL(u.expanded_url).hostname;
-                } catch {
-                    return u.display_url;
-                }
-            })
-            .filter(Boolean),
+            post.favorites +
+            post.retweets +
+            post.replies +
+            post.quotes +
+            post.bookmarks,
+        views: parseInt(post.views, 10) || 0,
+        has_media: post.has_media,
+        has_link: post.has_link,
+        is_reply: post.is_reply,
     };
 }
 
@@ -51,41 +61,34 @@ export interface PromptParts {
 
 export function buildAnalysisPrompt(
     screenName: string,
-    tweets: TikHubTweet[],
+    posts: CorePost[],
 ): PromptParts {
-    const system = `You are an expert social media analyst specializing in Twitter/X account intelligence.
+    const system = `You are a social media intelligence analyst. Analyze the provided Twitter/X posts and return a structured JSON response covering sentiment, topics, and account_intelligence.
 
-Your task is to analyze a batch of posts from a single account and produce a structured analysis covering:
-1. Sentiment Analysis — the emotional tone across the account's content
-2. Topic Modeling — the recurring themes and subjects
-3. Account Intelligence — behavioral patterns, engagement metrics, and audience signals
+Base all findings strictly on the provided data. All tweet IDs referenced must exist in the input.
 
-Be precise and data-driven. Base all findings strictly on the provided posts.
-Do not speculate about information not present in the data.
-All tweet IDs you reference must exist in the input data.
+account_intelligence computation rules:
+- posting_frequency.level: very_high ≥10/day, high 3–9/day, medium 1–2/day, low <1/day, irregular = no consistent pattern. Derive from date range and total post count.
+- posting_frequency.summary: one factual sentence with real numbers (e.g. "18 posts over 6 days, avg 3/day").
+- peak_activity: YYYY-MM-DD of the day with the most posts.
+- engagement_breakdown: divide each metric total by post count, round to 2dp. total_engagement = raw sum of all metrics across all posts.
+- top_post_id: tweet_id with highest (favorites+retweets+replies+quotes+bookmarks).
+- media_usage_rate: (posts where has_media=true) / total × 100, rounded to 1dp.
+- language_distribution: count by lang, sort descending, max 5 entries.
+- content_style.format: link_sharing if >60% has_link=true, thread_focused if >60% is_reply=true, original_commentary if >60% standalone, otherwise mixed.
+- content_style.description: 1–2 sentences on writing style, tone, and media/hashtag/emoji usage.
+- audience_signals: 2–3 evidence-based sentences citing specific metric ratios and topic names. No generic labels.`;
 
-Rules for account_intelligence fields:
-- posting_frequency.level: categorize as very_high (10+/day), high (3–9/day), medium (1–2/day), low (<1/day), or irregular (no consistent pattern). Derive from the date range and total post count.
-- posting_frequency.summary: factual sentence using real numbers, e.g. "18 posts over 6 days, avg 3 posts/day".
-- peak_activity: ISO 8601 date (YYYY-MM-DD) of the day with the most posts.
-- engagement_breakdown: compute avg_likes, avg_retweets, avg_replies, avg_bookmarks, avg_views by dividing each metric total by the number of posts. Round to 2 decimal places. total_engagement is the raw sum of all metrics across all posts.
-- top_post_id: tweet_id of the post with the highest combined engagement (favorites + retweets + replies + quotes + bookmarks).
-- media_usage_rate: (posts with at least one photo) / (total posts) × 100, rounded to 1 decimal place.
-- language_distribution: count posts by lang field (ISO 639-1 language code), sort descending, include up to 5 entries.
-- content_style.format: choose link_sharing if >60% of posts share external URLs, original_commentary if >60% are self-contained, thread_focused if most posts are conversation replies, otherwise mixed.
-- content_style.description: 1-2 sentences about writing style, typical structure, and tone. Reference sentence length, use of media, hashtag/emoji usage.
-- audience_signals: 2-3 specific, evidence-based sentences. Cite actual metric ratios (e.g. bookmark-to-retweet ratio, which topics outperform). Never use labels like "developer_focused" or "tech_community". Reference concrete numbers or topic names from the data.`;
-
-    const summaries = tweets.map(summarizeTweet);
+    const summaries = posts.map(summarizeTweet);
     const totalEngagement = summaries.reduce((s, t) => s + t.engagement, 0);
 
     const user = `Analyze the following ${summaries.length} posts from Twitter/X account @${screenName}.
 
-Total posts provided: ${summaries.length}
-Total engagement across all posts: ${totalEngagement}
-Date range: ${tweets.at(-1)?.created_at ?? "unknown"} → ${tweets.at(0)?.created_at ?? "unknown"}
+Total posts: ${summaries.length}
+Total engagement: ${totalEngagement}
+Date range: ${posts.at(-1)?.created_at ?? "unknown"} → ${posts.at(0)?.created_at ?? "unknown"}
 
-Posts (JSON array, sorted newest first):
+Posts (JSON, newest first):
 ${JSON.stringify(summaries, null, 2)}
 
 Return a structured analysis with sentiment, topics (max 10, ordered by frequency), and account_intelligence.`;

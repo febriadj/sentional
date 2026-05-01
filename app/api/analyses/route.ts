@@ -6,6 +6,7 @@ import redis, { Keys, TTL } from "@/lib/redis";
 import { fetchUserPosts } from "./lib";
 import { analysisResultSchema } from "./schema";
 import { buildAnalysisPrompt } from "./prompt";
+import type { CorePost } from "./prompt";
 import type {
     AnalysisApiResponse,
     AnalysisDocument,
@@ -33,7 +34,7 @@ async function streamOpenRouter(
             "Content-Type": "application/json",
         },
         body: JSON.stringify({
-            model: "poolside/laguna-m.1:free",
+            model: "google/gemini-2.5-flash-lite",
             messages: [
                 { role: "system", content: system },
                 { role: "user", content: user },
@@ -175,7 +176,26 @@ export async function POST(
         );
     }
 
-    const { system, user } = buildAnalysisPrompt(screenName, rawPosts);
+    const { system, user } = buildAnalysisPrompt(
+        screenName,
+        rawPosts.map(
+            (t): CorePost => ({
+                tweet_id: t.tweet_id,
+                text: t.text,
+                lang: t.lang,
+                created_at: t.created_at,
+                views: t.views,
+                favorites: t.favorites,
+                retweets: t.retweets,
+                replies: t.replies,
+                quotes: t.quotes,
+                bookmarks: t.bookmarks,
+                has_media: (t.media?.photo?.length ?? 0) > 0,
+                has_link: t.entities.urls.length > 0,
+                is_reply: t.conversation_id !== t.tweet_id,
+            }),
+        ),
+    );
 
     let analysisResult: z.infer<typeof analysisResultSchema>;
     try {
