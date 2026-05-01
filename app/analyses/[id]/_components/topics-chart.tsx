@@ -59,7 +59,7 @@ export function TopicsChart({ topics }: Props) {
                     Topic Landscape
                 </p>
 
-                <div className="min-h-0 flex-1">
+                <div className="min-h-96 flex-1 lg:min-h-0">
                     <ResponsiveContainer width="100%" height="100%">
                         <BarChart
                             data={sorted}
