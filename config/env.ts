@@ -1,27 +1,31 @@
 import { z } from "zod";
 
 const envSchema = z.object({
+    // General
     NODE_ENV: z
         .enum(["development", "production", "test"])
         .default("development"),
-    MONGODB_URI: z
+
+    // KV Storage (Upstash Redis)
+    KV_REST_API_READ_ONLY_TOKEN: z
         .string()
-        .min(1, "MONGODB_URI must not be empty")
-        .refine(
-            (val) =>
-                val.startsWith("mongodb://") ||
-                val.startsWith("mongodb+srv://"),
-            {
-                message:
-                    "MONGODB_URI must be a valid MongoDB connection string",
-            },
-        ),
+        .min(1, "KV_REST_API_READ_ONLY_TOKEN must not be empty"),
+    KV_URL: z.url("KV_URL must be a valid URL"),
+    KV_REST_API_URL: z.url("KV_REST_API_URL must be a valid URL"),
+    KV_REST_API_TOKEN: z.string().min(1, "KV_REST_API_TOKEN must not be empty"),
+
+    // Redis
+    REDIS_URL: z.url("REDIS_URL must be a valid URL"),
+
+    // TikHub API
     TIKHUB_BASE_URL: z
         .url("TIKHUB_BASE_URL must be a valid URL")
         .default("https://api.tikhub.io"),
     TIKHUB_BEARER_TOKEN: z
         .string()
         .min(1, "TIKHUB_BEARER_TOKEN must not be empty"),
+
+    // OpenRouter
     OPENROUTER_API_KEY: z
         .string()
         .min(1, "OPENROUTER_API_KEY must not be empty"),

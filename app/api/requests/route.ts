@@ -1,12 +1,14 @@
 import { NextRequest, NextResponse } from "next/server";
 import { uuidv7 } from "uuidv7";
-import { getDatabase } from "@/lib/mongodb";
+import redis, { Keys, TTL } from "@/lib/redis";
 import { createRequestSchema } from "./schema";
 import type {
     AnalysisRequestDocument,
     CreateRequestResponse,
     ErrorResponse,
 } from "./type";
+
+export const runtime = "edge";
 
 export async function POST(
     request: NextRequest,
@@ -44,10 +46,9 @@ export async function POST(
     };
 
     try {
-        const db = await getDatabase("sentional");
-        await db
-            .collection<AnalysisRequestDocument>("analysis_requests")
-            .insertOne(document);
+        await redis.set(Keys.analysisRequest(document._id), document, {
+            ex: TTL,
+        });
     } catch (err) {
         return NextResponse.json(
             { error: "Failed to save analysis request. Please try again." },

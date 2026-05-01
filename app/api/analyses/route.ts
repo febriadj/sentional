@@ -3,7 +3,7 @@ import { z } from "zod";
 import { OpenRouter } from "@openrouter/sdk";
 import { uuidv7 } from "uuidv7";
 import { env } from "@/config/env";
-import { getDatabase } from "@/lib/mongodb";
+import redis, { Keys, TTL } from "@/lib/redis";
 import { fetchUserPosts } from "./lib";
 import { analysisResultSchema } from "./schema";
 import { buildAnalysisPrompt } from "./prompt";
@@ -13,8 +13,9 @@ import type {
     AnalysisErrorResponse,
     TikHubTweet,
 } from "./type";
+import type { AnalysisRequestDocument } from "@/app/api/requests/type";
 
-export const maxDuration = 60;
+export const runtime = "edge";
 
 const openrouter = new OpenRouter({
     apiKey: env.OPENROUTER_API_KEY,
@@ -46,10 +47,9 @@ export async function POST(
         );
     }
 
-    const db = await getDatabase("sentional");
-    const analysisRequest = await db
-        .collection<{ _id: string; source_url: string }>("analysis_requests")
-        .findOne({ _id: analysisRequestId });
+    const analysisRequest = await redis.get<AnalysisRequestDocument>(
+        Keys.analysisRequest(analysisRequestId),
+    );
 
     if (!analysisRequest) {
         return NextResponse.json(
@@ -75,14 +75,13 @@ export async function POST(
         );
     }
 
-    const existing = await db
-        .collection<AnalysisDocument>("analyses")
-        .findOne({ analysis_request_id: analysisRequestId });
+    const existing = await redis.get<AnalysisDocument>(
+        Keys.analysis(analysisRequestId),
+    );
 
     if (existing) {
         // Re-fetch raw posts to return alongside cached result
-        let rawPosts: TikHubTweet[] = [];
-        rawPosts = await fetchUserPosts(screenName);
+        const rawPosts = await fetchUserPosts(screenName);
         return NextResponse.json({
             analysis_result: existing.analysis_result,
             raw_posts: rawPosts,
@@ -153,10 +152,12 @@ export async function POST(
     };
 
     try {
-        await db.collection<AnalysisDocument>("analyses").insertOne(document);
+        await redis.set(Keys.analysis(analysisRequestId), document, {
+            ex: TTL,
+        });
     } catch (err) {
         // Non-fatal — log and continue; result is still returned to client
-        console.error("[POST /api/analyses] MongoDB insert failed:", err);
+        console.error("[POST /api/analyses] Redis set failed:", err);
     }
 
     return NextResponse.json({
