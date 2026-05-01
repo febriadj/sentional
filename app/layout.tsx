@@ -1,9 +1,10 @@
 import { geistSans, geistMono } from "./fonts";
 import { metadata } from "./metadata";
 import { ThemeProvider } from "@/components/theme-provider";
-import "./globals.css";
+import { Analytics } from "@vercel/analytics/next";
 import AppNavbar from "@/components/shared/app-navbar";
 import AppFooter from "@/components/shared/app-footer";
+import "./globals.css";
 
 export { metadata };
 
@@ -28,6 +29,7 @@ export default function RootLayout({
                     <AppNavbar />
                     {children}
                     <AppFooter />
+                    <Analytics />
                 </ThemeProvider>
             </body>
         </html>
