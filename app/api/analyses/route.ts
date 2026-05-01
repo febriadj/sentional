@@ -78,7 +78,6 @@ async function streamOpenRouter(
                 if (typeof delta === "string") accumulated += delta;
             } catch {
                 // skip malformed SSE frames
-                continue;
             }
         }
     }
