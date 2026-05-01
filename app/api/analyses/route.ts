@@ -14,7 +14,10 @@ import type {
     TikHubTweet,
 } from "./type";
 
-const openrouter = new OpenRouter({ apiKey: env.OPENROUTER_API_KEY });
+const openrouter = new OpenRouter({
+    apiKey: env.OPENROUTER_API_KEY,
+    httpReferer: env.OPENROUTER_HTTP_REFERER,
+});
 
 export async function POST(
     request: NextRequest,

@@ -25,6 +25,7 @@ const envSchema = z.object({
     OPENROUTER_API_KEY: z
         .string()
         .min(1, "OPENROUTER_API_KEY must not be empty"),
+    OPENROUTER_HTTP_REFERER: z.string().optional(),
 });
 
 const _parsed = envSchema.safeParse(process.env);
