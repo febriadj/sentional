@@ -19,7 +19,7 @@
 #### 1. Clone
 
 ```bash
-git clone https://github.com/your-username/sentional.git
+git clone https://github.com/febriadj/sentional.git
 ```
 
 ```bash
@@ -69,7 +69,7 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## Deploy
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/your-username/sentional)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/febriadj/sentional)
 
 Add the same environment variables in your Vercel project settings. Enable **Vercel KV** from the Storage tab to provision Upstash Redis automatically.
 
